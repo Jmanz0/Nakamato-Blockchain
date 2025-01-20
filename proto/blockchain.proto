@@ -3,39 +3,31 @@ syntax = "proto3";
 package blockchain;
 option go_package = "proto/gen";
 
-// Main blockchain service
-service BlockchainService {
-  // Get blockchain status
-  rpc GetStatus(Empty) returns (StatusResponse) {}
+// IncomingCommunicatorService
+service IncomingCommunicatorService {
   
-  // Get block by height or hash
-  rpc GetBlock(BlockRequest) returns (Block) {}
-  
-  // Get transaction by hash
-  rpc GetTransaction(TxRequest) returns (Transaction) {}
+  // Get block by hash
+  rpc GetBlockByHash(BlockRequest) returns (Block) {}
   
   // Submit new transaction
   rpc SubmitTransaction(Transaction) returns (TxResponse) {}
 
   // Submit new block
-  rpc SubmitBlock(BlockWithHeaders) returns (BlockResponse) {}
+  rpc SubmitBlock(BlockWithHashes) returns (BlockResponse) {}
+
+  // Gets a transactions Status
+  rpc GetTransactionStatus (TransactionStatusRequest) returns (TransactionStatusResponse);
+
+  // Not Implemented and Not Used
+  // Get chain
+  // rpc GetChain(Empty) returns (ChainResponse) {}
 }
 
 // Empty message for requests that don't need parameters
 message Empty {}
 
-// Status response containing chain information
-message StatusResponse {
-  int32 height = 1;
-  string latest_block_hash = 2;
-}
-
-// Request for getting specific block
 message BlockRequest {
-  oneof identifier {
-    int32 height = 1;
-    string hash = 2;
-  }
+  string hash = 1;
 }
 
 // Block message containing block data
@@ -51,13 +43,13 @@ message BlockHeader {
   string previous_hash = 2;
   string content_hash = 3;
   int32 height = 4;
-  int64 difficulty = 5;
+  string difficulty = 5;
   int64 nonce = 6;
 }
 
-message BlockWithHeaders {
+message BlockWithHashes {
   Block block = 1;
-  repeated BlockHeader last_100_headers = 2;
+  repeated string last_100_hashes = 2;
 }
 
 message BlockContent {
@@ -69,11 +61,6 @@ message BlockResponse {
   string error = 2;
 }
 
-// Request for getting specific transaction
-message TxRequest {
-  string hash = 1;
-}
-
 // Transaction message
 message Transaction {
   repeated UTXO inputs = 1;
@@ -81,22 +68,42 @@ message Transaction {
   int64 timestamp = 3;
   string signature = 4;
   string hash = 5;
+  string senderpubkey = 6;
 }
 
 message UTXO {
   string tx_hash = 1;
-  int32 output_index = 2;
+  int32 index = 2;
   int64 amount = 3;
   string address = 4;
 }
 
 // Response after submitting transaction
 message TxResponse {
-  string hash = 1;
-  bool accepted = 2;
-  string error = 3;
+  bool accepted = 1;
+  string error = 2;
 }
 
-message ChainValidationResponse {
-    bool valid = 1; // Indicates if the blockchain is valid.
+// Not Implemented and Not Used
+// Response containing the blockchain
+// message ChainResponse {
+//   repeated Block blocks = 1;
+// }
+
+// Not Implemented and Not Used
+// message CreateTransactionRequest {
+//   string sender = 1;
+//   string receiver = 2;
+//   int64 amount = 3;
+//   repeated UTXO input_utxos = 4;
+// }
+
+message TransactionStatusRequest {
+  string hash = 1;
+  int32 k = 2;
+}
+
+message TransactionStatusResponse {
+  bool confirmed = 1;
+  string error = 2;
 }
